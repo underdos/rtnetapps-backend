@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.ui.velocity.VelocityEngineFactory;
+import org.springframework.ui.velocity.VelocityEngineFactoryBean;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -19,13 +20,25 @@ public class SurveyApplication {
         SpringApplication.run(SurveyApplication.class, args);
     }
 
+//    @Bean
+//    public VelocityEngine getVelocityEngine() throws VelocityException, IOException {
+//        VelocityEngineFactory factory = new VelocityEngineFactory();
+//        Properties props = new Properties();
+//        props.put("resource.loader", "class");
+//        props.put("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+//        factory.setVelocityProperties(props);
+//        return factory.createVelocityEngine();
+//    }
     @Bean
-    public VelocityEngine getVelocityEngine() throws VelocityException, IOException {
-        VelocityEngineFactory factory = new VelocityEngineFactory();
+    public VelocityEngine velocityEngine() throws VelocityException, IOException{
+        VelocityEngineFactoryBean factory = new VelocityEngineFactoryBean();
         Properties props = new Properties();
         props.put("resource.loader", "class");
-        props.put("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        props.put("class.resource.loader.class",
+                "org.apache.velocity.runtime.resource.loader." +
+                        "ClasspathResourceLoader");
         factory.setVelocityProperties(props);
+
         return factory.createVelocityEngine();
     }
 }

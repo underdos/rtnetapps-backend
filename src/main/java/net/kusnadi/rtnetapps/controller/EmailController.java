@@ -5,6 +5,7 @@ import org.apache.velocity.app.VelocityEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -31,13 +32,19 @@ public class EmailController {
     @Autowired
     private VelocityEngine velocityEngine;
 
+    private ClassLoader classLoader;
+
+    public EmailController(){
+        this.classLoader = getClass().getClassLoader();
+    }
+
     @RequestMapping("version")
     @ResponseStatus(HttpStatus.OK)
     public String version() {
         return "[OK] Welcome to withdraw Restful version 1.0";
     }
 
-    @RequestMapping(value = "send", method = RequestMethod.POST, produces = { "application/xml", "application/json" })
+    @RequestMapping(value = "send", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Email> sendSimpleMail(@RequestBody Email email) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(email.getFrom());
@@ -52,7 +59,7 @@ public class EmailController {
         return new ResponseEntity(email, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "attachments", method = RequestMethod.POST, produces = { "application/xml", "application/json" })
+    @RequestMapping(value = "attachments", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Email> attachments(@RequestBody Email email) throws Exception {
 
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -63,11 +70,11 @@ public class EmailController {
         mimeMessageHelper.setSubject(email.getSubject());
         mimeMessageHelper.setText("<html><body><img src=\"cid:banner\" >" + email.getText() + "</body></html>", true);
 
-        FileSystemResource file = new FileSystemResource(new File("banner.jpg"));
+        FileSystemResource file = new FileSystemResource(new File(classLoader.getResource("assets/banner.png").getFile()));
         mimeMessageHelper.addInline("banner", file);
 
-        FileSystemResource fileSystemResource = new FileSystemResource(new File("Attachment.jpg"));
-        mimeMessageHelper.addAttachment("Attachment.jpg", fileSystemResource);
+        FileSystemResource fileSystemResource = new FileSystemResource(new File(classLoader.getResource("assets/attachment.png").getFile()));
+        mimeMessageHelper.addAttachment("attachment.png", fileSystemResource);
 
         javaMailSender.send(mimeMessage);
         email.setStatus(true);
@@ -75,13 +82,13 @@ public class EmailController {
         return new ResponseEntity<Email>(email, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "template", method = RequestMethod.POST, produces = { "application/xml", "application/json" })
+    @RequestMapping(value = "template", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Email> template(@RequestBody Email email) throws Exception {
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("title", email.getSubject());
         model.put("body", email.getText());
-        String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "email.vm", "UTF-8", model);
+        String text = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "templates/email.vm", "UTF-8", model);
 
         System.out.println(text);
 
@@ -99,4 +106,6 @@ public class EmailController {
 
         return new ResponseEntity<Email>(email, HttpStatus.OK);
     }
+
+
 }

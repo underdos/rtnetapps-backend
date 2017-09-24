@@ -1,12 +1,16 @@
 package net.kusnadi.rtnetapps.entity;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Created by root on 12/09/17.
  */
 
 
 public class LoginReq {
+    @NotNull
     private String username;
+    @NotNull
     private String password;
 
     public LoginReq(String username, String password) {
